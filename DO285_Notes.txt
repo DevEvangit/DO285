@@ -1,0 +1,596 @@
+
+Welcome to DO285:
+OCP 4.6
+
+
+Containers, Kubernetes, and Red Hat OpenShift Administration II
+
+
+
+Navdeep
+
+Nav   #Deep
+
+Reading UK
+
+
+Name
+Org If Possible
+Experience	RHCSA or equivalent Knowledge
+Expectation	
+City/Timezone
+Hobbies		
+
+
+
+
+
+
+
+SDN Pods/Containers Services
+OCP has local image registry
+
+POD basic unit of management	
+Normally in most cases one pod have one container
+in some cases one pod can contain multiple containers
+
+
+to start container, we need image
+Image can come from: docker.io, quay.io or private registry
+
+Developers: doesn't know how to build image
+source code
+s2i source to image:
+
+pull source code(PHP app of vodafone) from github + builder image(PHP lib) = Application Image the store in OCP internal registry
+
+OCP pull image from OCP internal registry and start your pods(container)
+
+Route is only OCP
+
+
+
+
+Starting a container
+
+Pull Image:		sudo podman pull Image_name
+Run container:		sudo podman run imagename (if image doesn't exist it pull and then run)
+
+ 
+
+
+podman is default RHEL 7.6
+
+
+
+Chapter 1:
+
+	OCP3.x			OCP4.x
+	docker			podman
+	getting heavier		lightweight container platform
+	Same commands		Same commands
+	daemon(service)		daemon-less
+
+When to use:
+
+Reuse Application (WEB,DATABASE)
+NOT Using	Hardware,CPU,MEMORY,Hypervisor,Real Time APP
+
+
+Limitations of containers:
+google ~2B
+Android Phones           Youtube,Map,Drive,Gmail,Crome (10 Services) 
+1 Container per service per user
+
+
+Regular Convention: One container per Pod
+
+
+Self-Mangement of Contaiers, orachestration
+Kubernetes is google contribution
+
+
+1000 containers 
+Cigna provides Health services
+9-12
+11Pm-5AM less 
+
+
+
+
+OCI-CRI
+CRIO
+Open Container Initiative - Container Runtime Interface
+
+
+sudo podman run --name mysql-basic -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 -d  registry.redhat.io/rhel8/mysql-80:1  
+
+CREATE TABLE Projects (id int(11) NOT NULL,name varchar(255) DEFAULT NULL,code varchar(255) DEFAULT NULL,PRIMARY KEY (id));
+
+insert into Projects (id, name, code) values (1,'DevOps','DO180');
+
+
+Chapter 3:
+
+public	docker.io quay.io	free not support
+redhat	access.redhat.com	subscription support
+private	local			internal
+
+
+
+
+sudo podman rm $(sudo podman stop $(sudo podman ps -aq))
+
+
+
+
+How to Create Images:
+
+1. Save Container changes as Image OR as a tar File
+2. Containerfile (Automated)
+3. s2i (Source to Image) Developer(PHP Code) + compilation(Base/Parent Builder Image with PHP) = Application/Child Image(which can be put on container)
+4. Buildah
+
+
+
+
+
+
+
+
+
+
+
+Save Container as Image:
+
+1. Run Container with existing Image
+
+	podman run -d --name=me httpd
+
+2. Make Changes to Container
+
+	podman exec -it me /bin/bash
+	podman diff me
+
+3. Save Container as Image and Test
+
+	podman stop me
+	podman commit -a "Author_name"  me Image_name:tag     //-m "Meaningful_Message" only for docker
+
+4. Tag The Image
+	podman tag d591aa3a8577 quay.io/quay_username/cc
+
+
+5. Save Image as Tar File
+
+	podman save -o	abc.tar  quay.io/quay_username/cc
+
+6. Test new Container with Tar File Image 
+
+	podman load -i abc.tar
+
+7. Push Image to Registry
+
+	podman push quay.io/quay_username/cc
+
+ubi: Universal Base Image
+3 versions:
+
+
+
+Dockerfile
+
+		Add						Copy 	
+1.		copy from working directory			copy from working directory
+		to image					to image
+2.		Download from internet				NA 
+		and put in image
+3.		tar file extract and copy contents		copy file as it is to image
+		to Image
+
+dnf install docker-ce docker-ce-cli containerd.io
+
+https://github.com/openshift/source-to-image
+
+s2i (Source to Image) Developer(PHP Code)+compilation(Builder Image with PHP) = Application Image(which can be put on container)
+Build-config
+
+Download s2i from github or install package
+
+
+// Compatible with docker
+./s2i build https://github.com/sclorg/django-ex docker.io/centos/python-35-centos7 hello-python
+
+
+
+//compatible with Podman
+s2i build source_code s2i-builder_image s2i-sample-app --as-dockerfile ~/s2i-sample-app/Containerfile
+cd s2i-sample-app
+podman build -t image_name .
+
+
+
+
+
+Buildah:
+
+yum module install container-tools
+buildah from scratch
+buildah mount working-container
+
+yum install --installroot /var/lib/containers/storage/overlay/240a...b6ce/merged  bash coreutils  --releasever 8  --setopt install_weak_deps=false
+yum clean all  --installroot /var/lib/containers/storage/overlay/240a...b6ce/merged  --releasever 8
+
+buildah config --cmd /bin/bash working-container
+buildah config --label name=rhel-base working-container
+buildah unmount working-container
+buildah commit working-container rhel-base
+buildah images
+
+Test Image: 
+podman inspect localhost/rhel-base
+podman run --rm -it localhost/rhel-base /bin/bash
+buildah rm working-container
+buildah rmi rhel-base
+
+
+Chapter 6:
+oc new-app --as-deployment-config --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7:latest --name=mysql-openshift  -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb  -e MYSQL_ROOT_PASSWORD=r00tpa55
+
+
+oc new-app --as-deployment-config --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7:latest --name=mysql-openshift -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb -e MYSQL_ROOT_PASSWORD=r00tpa55
+
+
+
+oc whoami -t
+cat .kube/config
+
+Namespace(Kubernetes)  == Project(OCP)
+
+Project = Kubernetes+ Extra Options
+
+
+Use Case:
+Single POd: Single APP
+
+
+Multicontainer Pod: php-app PHP:7.3 (Image1) authenticate( database, ldap,Java EJB) Image2
+
+Wordpress:
+
+Amazon:
+
+
+
+
+redhattraining/httpd-parent:2.4
+
+
+Build config (bc) is created when you don't have image, create image via s2i
+
+With Source code and Build Image:
+
+//Create BC and DC
+oc new-app -i php:7.1 https://github.com/${RHT_OCP4_GITHUB_USER}/DO180-apps/ --context-dir php-helloworld --name=php-s2i
+
+oc new-app --as-deployment-config php:7.3~https://github.com/${RHT_OCP4_GITHUB_USER}/DO180-apps --context-dir php-helloworld --name php-helloworld
+
+
+Deployment config (dc)
+
+//ONly DC is created
+With already Existing Image:
+
+oc new-app --as-deployment-config --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7:latest --name=mysql-openshift -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb -e MYSQL_ROOT_PASSWORD=r00tpa55
+
+oc new-app --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7:latest -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb -e MYSQL_ROOT_PASSWORD=r00tpa55 --name=mysql-docker
+
+
+Routes
+
+
+
+
+
+php 7.1 is builder image
+Source Code
+= Application Image
+
+
+
+oc new-app --image-stream myiname:1.0 https://github.com/openshift/ruby-hello-world --name=ruby-hello
+
+One pod can have more than 1 container
+but good practise 1 pod/1 conatiner
+
+
+
+
+Chapter 7:
+
+	OCP Templates:
+oc get template mysql-ephemeral -n openshift > mysql-ephemeral-template.json
+
+oc process -f mysql-ephemeral-template.json -p MYSQL_USER=user1 -p MYSQL_PASSWORD=mypa55 -p MYSQL_DATABASE=items  | oc create -f -
+
+
+OR
+
+1.	Export/Create Template:
+oc get template mysql-ephemeral -n openshift > mysql-ephemeral-template.json
+
+2.	Process Template with your Values:
+oc process -f mysql-ephemeral-template.json -p MYSQL_USER=user1 -p MYSQL_PASSWORD=mypa55 -p MYSQL_DATABASE=items > checkme.json
+
+3.	Execute the processed Template/Create all resources mentioned in Template:
+oc create -f checkme.json
+
+	Delete all resources in project:
+oc delete all --all
+
+
+One step solution for deploying your complex application:
+Large Application eCommerce Amazon
+
+							Netfilter							Haproxy
+							
+							
+							
+		App_Image	ImageStream	Pods	Service		RC	DeploymentConfig(OCP)	BuildConfig	Route 											Deployment(K)
+Front End	I1		PHP7.3		40	1		1	1			1		1
+Service End	I2		Java EJB	20	1		1	1			1		0 (calculate black friday discount)
+Database	I3		MYSQL(6.0)	10	1		1	1			0		0
+
+BC  php7.3~SOURCE_CODE
+    --docker-image=quay.io/image_path
+
+	1 Step Solution app.yml (OpenShift Template)
+	oc create -f app.yml (82 resources )
+
+Dev -> Test -> QA -> Prod
+Template:
+1. replace Variables
+2. 
+
+Wordpress:
+Front End: Backend
+Writing: saving blog
+PHP: Postgres
+
+
+		CHapter 8:
+		
+3 Load Balancers
+1. External
+2. HaProxy
+3. Internal
+
+
+
+oc create configmap db-config --from-literal=user_value=user1 --from-literal=db_value=items
+
+oc create secret generic mysql --from-literal=MYSQL_PASSWORD=mypa55 --from-literal=MYSQL_ROOT_PASSWORD=r00tpa55
+
+
+//Cluster Version
+
+oc get clusterversion
+oc describe clusterversion | less
+
+
+
+//Cluster Operators
+
+oc get clusteroperators | less
+oc describe clusteroperators image-registry
+oc get all -n openshift-console
+oc get all -n openshift-console-operator 
+oc get all -n openshift-dns
+oc get all -n openshift-dns-operator 
+
+			Chapter 9: 
+//Cluater Nodes
+oc get nodes
+oc describe node ip-10-0-132-247.eu-central-1.compute.internal
+oc get pods -n openshift-console-operator
+oc whoami
+oc get nodes
+oc describe node ip-10-0-133-224.eu-central-1.compute.internal | less
+oc adm top node -l node-role.kubernetes.io/worker
+oc adm top node -l node-role.kubernetes.io/wmaster 
+oc adm top node -l node-role.kubernetes.io/master
+oc adm top node 
+oc get pods -n openshift-image-registry
+
+/ Logs on Pods/Contrainers and nodes
+
+oc logs cluster-image-registry-operator-544b598bcd-8vrs4
+oc logs pod cluster-image-registry-operator-544b598bcd-8vrs4
+oc logs pod cluster-image-registry-operator-544b598bcd-8vrs4 -n openshift-image-registry
+oc logs cluster-image-registry-operator-544b598bcd-8vrs4 -n openshift-image-registry
+oc logs cluster-image-registry-operator-544b598bcd-8vrs4 -n openshift-image-registry --all-containers 
+
+
+
+
+
+
+oc get pod -n openshift-image-registry image-registry-685b449b4c-sdrwj --loglevel 9
+   OR
+oc logs image-registry-685b449b4c-sdrwj -n openshift-image-registry --tail=10
+
+// Shell in Pod
+oc exec -it -n openshift-image-registry image-registry-685b449b4c-sdrwj bash
+   OR
+oc rsh -n openshift-image-registry image-registry-685b449b4c-sdrw
+
+
+oc get nodes
+oc adm node-logs ip-10-0-132-247.eu-central-1.compute.internal --tail 4
+oc adm node-logs ip-10-0-132-247.eu-central-1.compute.internal --tail 4 -u kubelet
+oc adm node-logs ip-10-0-132-247.eu-central-1.compute.internal --tail 4 -u cri
+
+
+
+skopeo inspect docker://registry.access.redhat.com/rhscl/postgresql-96-rhel7:1
+skopeo inspect docker://registry.access.redhat.com/rhscl/postgresq-96-rhel7:1
+oc get deployment
+oc edit deployment/psql
+ oc patch deployment/psql -p '{"spec":{"template":{"spec":{"containers":[{"name":"postgresql","image":"registry.redhat.io/rhel8/postgresql-13:1"}]}}}}'
+
+
+
+inside debug pod of node
+
+oc debug node master01
+ps -ef
+ps -ef | grep kubectl
+ps -ef | grep crio
+systemctl statkubect
+systemctl state kubectl
+systemctl state kubelet
+systemctl status kubelet
+systemctl status crio
+crictl ps
+crictl ps --name openvswitch
+
+oc new-app --name postgresql-persistent --docker-image registry.redhat.io/rhel8/postgresql-12:1-43 -e POSTGRESQL_USER=redhat -e POSTGRESQL_PASSWORD=redhat123 -e POSTGRESQL_DATABASE=persistentdb
+
+oc set volumes deployment/postgresql-persistent --add --name postgresql-storage --type pvc --claim-class nfs-storage --claim-mode rwo --claim-size 10Gi --mount-path /var/lib/pgsql --claim-name postgresql-storage
+
+
+oc create configmap db-config --from-literal=user_value=user1 --from-literal=db_value=items
+
+oc create secret generic mysql --from-literal=MYSQL_PASSWORD=mypa55 --from-literal=MYSQL_ROOT_PASSWORD=r00tpa55
+
+oc set env deployment/demo --from secret/demo-secret --prefix MYSQL_
+
+password   MYSQL_PASSWORD
+
+
+
+			Chapter 12:
+			
+Route/Ingress		http https tls sni
+NodePort		
+
+
+
+
+		Chapter 13:
+
+QoS: Pod
+			requests		limits
+BestEffort		No			NO		Best Node Maximum Resources
+Burstable		YES/NO			YES
+Guranteed		Same Resources		Same Resources
+
+
+Limit Ranges:
+defaultRequest — is how much CPU/Memory will be given to Container, if it doesn't specify it's own value
+default — is default limit for amount of CPU/Memory for Container, if it doesn't specify it's own value
+max — is maximum limit for amount of CPU/Memory that Container can ask for. I.e. it can't set it's own limit more than that
+min — is minimum limit amount of CPU/Memory that Container can ask for. I.e. it can't set it's own limit less than that
+
+
+ResourceQuota
+in Project:
+Based on numbers of resources		count-quota		services=2,pods=10,rc=2,route=1
+Based on Compute resource		compute-quota		CPU= Memory Storage
+
+
+	ProjectQuota				ClusterQuota
+	resourceQuota				Normal use case for 1. user
+
+1000m  1 core
+
+M 1000
+Mi 1024
+
+
+
+Difference Deployment and DeploymentConfig
+
+https://docs.openshift.com/container-platform/4.6/applications/deployments/what-deployments-are.html#deployments-comparing-deploymentconfigs_what-deployments-are
+
+
+
+Kubernetes DNS service run on service address
+ oc describe dns.operator/default
+172.30.0.10
+Add routing Table to all nodes via service (cluster.local) internal domain for kubernetes
+(cluster.local) Nothing to do with
+
+Service Network Range:
+ oc get networks.config/cluster -o jsonpath='{$.status.serviceNetwork}'
+oc get pods -n openshift-ingress
+oc rsh -n openshift-ingress router-default-6ff9ddbb9d-8hrhk
+cat /etc/resolv.conf
+
+nslookup lab.ocp.com
+
+oc debug node/master01
+cat /etc/resolv.conf
+
+oc rsh POD_NAME
+cat /etc/resolv.conf
+
+
+POD
+dig
+hosts - > resolv.conf -> coreDNS POD (service) -> forwarders -> Node resolv.conf
+	External
+	
+
+
+Kubernetes		NodePort OLD Technology, Ingress operator
+OCP			Route
+
+Expose service
+Route(FRONTEND) > directly send traffic to pods[/etc/hosts -> resolv.conf -> internal domain ->service MYSQL] -> mysql -> POD MYSQL -> 
+
+
+Netfilter: lookup of Pods
+Service Discovery: DNS
+
+
+
+
+candidate			Development
+fast				QA,Test
+stable				Production
+
+
+
+
+
+All Nodes		DNS		POD(coredns)	to Application Pods(php-helloworld,mysql)		
+All Nodes		logging		POD(monitor)	APpication logs need captured
+All Nodes		Registry	POD
+
+
+
+
+
+1. Setup label env=dev/env=prod on nodes of dev and Prod
+2. Project annotate 
+      oc edit deployment/app_dev           nodeSelector:
+                                             env: dev
+                                            resources:
+                                              requests:
+                                                cpu:
+                                                memory:
+                                              limits:
+3. Define LimitRange
+  if pods taking too much resources, check application image
+
+
+
+		Kubernetes			Openshift
+		Deployment			DeploymentConfig
+		Replicaset			ReplicationController
+		Ingress				Route
+
+
+
+
