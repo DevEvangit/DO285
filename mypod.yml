@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: johnpod
+
+spec:
+  containers:
+  - name: web
+    image: image-registry.openshift-image-registry.svc:5000/project1/mys2i
+    ports:
+    - containerPort: 8080
+
+  - name: database
+    image: registry.redhat.io/rhel8/mysql-80:1
+    ports:
+    - containerPort: 3306
+    env:
+    - name: MYSQL_USER
+      value: user1
+    - name: MYSQL_PASSWORD
+      value: mypa55
+    - name: MYSQL_DATABASE
+      value: items
+    - name: MYSQL_ROOT_PASSWORD
+      value: r00tpa55

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: johnpod
+
+spec:
+  serviceAccountName: bjarke
+  containers:
+  - name: web
+    image: quay.io/redhattraining/httpd-parent
+    ports:
+    - containerPort: 8080
+
+  #- name: database
+  #  image: registry.redhat.io/rhel8/mysql-80:1
+  #  ports:
+  #  - containerPort: 3306
+  #  env:
+  #  - name: MYSQL_USER
+  #    value: user1
+  #  - name: MYSQL_PASSWORD
+  #    value: mypa55
+  #  - name: MYSQL_DATABASE
+  #    value: items
+  #  - name: MYSQL_ROOT_PASSWORD
+  #    value: r00tpa55

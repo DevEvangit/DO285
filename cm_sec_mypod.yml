@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: johnpod
+
+spec:
+  containers:
+  #- name: web
+  #  image: quay.io/redhattraining/hello-world-nginx:v1.0
+  #  ports:
+  #  - containerPort: 8080
+
+  - name: database
+    image: registry.redhat.io/rhel8/mysql-80:1
+    ports:
+    - containerPort: 3306
+    env:
+    - name: MYSQL_USER
+      valueFrom:
+        configMapKeyRef:
+          name: cmredhat
+          key: user
+
+    - name: MYSQL_DATABASE
+      valueFrom:
+        configMapKeyRef:
+          name: cmredhat
+          key: database
+
+    - name: MYSQL_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: secredhat
+          key: password
+
+    - name: MYSQL_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: secredhat
+          key: root_password

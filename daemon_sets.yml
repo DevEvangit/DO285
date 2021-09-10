@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: watch-app
+  namespace: kube-system
+  labels:
+    k8s-app: fluentd-logging
+spec:
+  selector:
+    matchLabels:
+      name: watch-app
+  template:
+    metadata:
+      labels:
+        name: watch-app
+    spec:
+      containers:
+      - name: watch-app
+        image: quay.io/redhattraining/hello-world-nginx:v1.0

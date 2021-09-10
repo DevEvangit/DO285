@@ -1,0 +1,128 @@
+apiVersion: v1
+items:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: youme
+      app.kubernetes.io/component: youme
+      app.kubernetes.io/instance: youme
+      app.kubernetes.io/name: php
+    name: youme
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: youme
+      app.kubernetes.io/component: youme
+      app.kubernetes.io/instance: youme
+      app.kubernetes.io/name: php
+    name: youme
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: youme:latest
+    postCommit: {}
+    resources: {}
+    source:
+      contextDir: php-helloworld
+      git:
+        uri: https://github.com/navdeepsachdeva/DO180-apps
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: php:7.3
+          namespace: openshift
+      type: Source
+    triggers:
+    - github:
+        secret: BNwXiUb9gNYhkw9__3c_
+      type: GitHub
+    - generic:
+        secret: 039la1KPaIf-OJBP1uX1
+      type: Generic
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"youme:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"youme\")].image"}]'
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: youme
+      app.kubernetes.io/component: youme
+      app.kubernetes.io/instance: youme
+      app.kubernetes.io/name: php
+    name: youme
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: youme
+    strategy: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          deployment: youme
+      spec:
+        containers:
+        - image: ' '
+          name: youme
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          resources: {}
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: youme
+      app.kubernetes.io/component: youme
+      app.kubernetes.io/instance: youme
+      app.kubernetes.io/name: php
+    name: youme
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8443-tcp
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    selector:
+      deployment: youme
+  status:
+    loadBalancer: {}
+kind: List
+metadata: {}
